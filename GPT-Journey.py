@@ -1,12 +1,11 @@
 # For the UI
 from flask import Flask, render_template, request, session
-# OpenAI API
-import openai
-# Regular expressions:
-import re
+import openai, re, tomli, os
 
 # Set the OpenAI API key
-openai.api_key = open("key.txt", "r").read().strip("\n")
+with open("secrets.toml","rb") as f:
+    secrets = tomli.load(f)
+os.environ["OPENAI_API_KEY"] = secrets["OPENAI_API_KEY"]
 
 # Create a new Flask app and set the secret key
 app = Flask(__name__)
@@ -15,7 +14,7 @@ app.secret_key = "mysecretkey"
 # Define a function to generate an image using the OpenAI API
 def get_img(prompt):
     try:
-        response = openai.Image.create(
+        response = openai.images.generate(
             prompt=prompt,
             n=1,
             size="512x512"
@@ -34,7 +33,7 @@ def chat(inp, message_history, role="user"):
     message_history.append({"role": role, "content": f"{inp}"})
 
     # Generate a chat response using the OpenAI API
-    completion = openai.ChatCompletion.create(
+    completion = openai.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=message_history
     )
